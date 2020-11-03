@@ -1,3 +1,88 @@
+/*********************************
+mouse stalker
+**********************************/
+
+class Pointer {
+	constructor() {
+		const pointer = document.querySelector('.pointer');
+		const pointerHalfWidth = pointer.clientWidth / 2;
+		const pointerHalfHeight = pointer.clientHeight / 2;
+		const mouse = {
+			x: 0,
+			y: 0,
+		};
+		const tween = {
+			x: 0,
+			y: 0,
+		};
+		const diff = {
+			x: 0,
+			y: 0,
+		};
+		const force = 2.0;
+		const slowColor = [255, 255, 255];
+		const fastColor = [255, 231, 96];
+
+		window.addEventListener('mousemove', (e) => {
+			mouse.x = e.clientX - pointerHalfWidth;
+			mouse.y = e.clientY - pointerHalfHeight;
+
+			gsap.to(pointer, {
+				duration: 0.4,
+				ease: "power2.out",
+				x: mouse.x,
+				y: mouse.y,
+			});
+
+			gsap.to(tween, {
+				duration: 0.6,
+				x: mouse.x,
+				y: mouse.y,
+			});
+		});
+
+		const raf = () => {
+			window.requestAnimationFrame(() => {
+				diff.x = Math.abs((mouse.x - tween.x) / window.innerWidth);
+				diff.y = Math.abs((mouse.y - tween.y) / window.innerHeight);
+				this.diffXY = diff.x * force + diff.y * force;
+				if (this.diffXY >= 1.0) {
+					this.diffXY = 1.0;
+				}
+				gsap.to(pointer, {
+					duration: 0.4,
+					ease: "power2.out",
+					scaleX: 1.0 - diff.y * force,
+					scaleY: 1.0 - diff.x * force,
+					backgroundColor: this.colorMixer(fastColor, slowColor, this.diffXY),
+				});
+				raf();
+			});
+		}
+		raf();
+	}
+
+	colorChannelMixer(colorChannelA, colorChannelB, amountToMix) {
+		const channelA = colorChannelA * amountToMix;
+		const channelB = colorChannelB * (1 - amountToMix);
+		return parseInt(channelA + channelB);
+	}
+
+	colorMixer(rgbA, rgbB, amountToMix) {
+		const r = this.colorChannelMixer(rgbA[0], rgbB[0], amountToMix);
+		const g = this.colorChannelMixer(rgbA[1], rgbB[1], amountToMix);
+		const b = this.colorChannelMixer(rgbA[2], rgbB[2], amountToMix);
+		return "rgb(" + r + ", " + g + ", " + b + ") ";
+	}
+}
+
+new Pointer();
+
+/*********************************
+contents
+**********************************/
+
+
 gsap.to(".box_a", { // 動かす要素
 	scrollTrigger: {
 		trigger: ".box_a", // この要素まできたらアニメーション開始
